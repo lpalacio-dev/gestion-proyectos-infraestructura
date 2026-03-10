@@ -1,0 +1,14 @@
+# 1. Archivos locales de Terraform (Binarios y plugins descargados)
+.terraform/
+
+# 2. El estado de tu infraestructura (¡MUY IMPORTANTE!)
+# Nunca subas el .tfstate a Git porque contiene contraseñas en texto plano
+*.tfstate
+*.tfstate.backup
+
+# 3. Variables con información sensible
+*.tfvars
+*.tfvars.json
+
+# 4. Archivos de plan temporales (los que generas con -out)
+*.tfplan
