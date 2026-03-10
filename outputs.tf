@@ -1,12 +1,10 @@
 # ==============================================================================
 # outputs.tf — Valores que Terraform imprime al terminar
 # ==============================================================================
-# Después de correr "terraform apply", estos valores aparecen en la terminal.
-# También los puedes consultar después con: terraform output
-#
-# Son útiles para copiar en GitHub Secrets, en tu app, o para la siguiente
-# etapa de infraestructura.
-# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Etapa 1: ECR + ECS
+# ------------------------------------------------------------------------------
 
 output "ecr_repository_url" {
   description = "URL del repositorio ECR — úsala en GitHub Actions para hacer push de imágenes"
@@ -49,13 +47,42 @@ output "ecs_task_execution_role_arn" {
 }
 
 output "ecs_security_group_id" {
-  description = "ID del Security Group de los tasks ECS — lo usaremos en la Etapa 2 (ALB)"
+  description = "ID del Security Group de los tasks ECS"
   value       = aws_security_group.ecs_tasks.id
 }
 
 output "cloudwatch_log_group" {
   description = "Nombre del Log Group en CloudWatch donde verás los logs de tu API"
   value       = aws_cloudwatch_log_group.ecs.name
+}
+
+# ------------------------------------------------------------------------------
+# Etapa 2: ALB
+# ------------------------------------------------------------------------------
+
+output "alb_dns_name" {
+  description = "DNS público del ALB — úsalo para probar tu API mientras no tengas dominio"
+  value       = aws_lb.main.dns_name
+}
+
+output "alb_arn" {
+  description = "ARN del ALB — necesario para agregar HTTPS en la siguiente etapa"
+  value       = aws_lb.main.arn
+}
+
+output "alb_security_group_id" {
+  description = "ID del Security Group del ALB"
+  value       = aws_security_group.alb.id
+}
+
+output "target_group_arn" {
+  description = "ARN del Target Group — lo usará Auto Scaling en la Etapa 4"
+  value       = aws_lb_target_group.backend.arn
+}
+
+output "api_url" {
+  description = "URL base de tu API — pruébala en el navegador con /health al final"
+  value       = "http://${aws_lb.main.dns_name}"
 }
 
 # ==============================================================================

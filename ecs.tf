@@ -148,31 +148,33 @@ resource "aws_iam_role_policy" "ecs_task_sns" {
 # ==============================================================================
 # 3. SECURITY GROUP DEL CONTENEDOR
 # ==============================================================================
-# Define qué tráfico puede entrar/salir de tus tasks de Fargate.
-# Por ahora abre el puerto de la app al mundo (0.0.0.0/0).
-# En la Etapa 2 (ALB) lo restringiremos para que SOLO el ALB pueda hablar
-# con el contenedor — más seguro.
+# ETAPA 2: Ahora el ECS Task SOLO acepta tráfico desde el ALB.
+# Nadie en internet puede llegar directamente al contenedor.
+# El flujo es: Internet → ALB SG → ALB → ECS SG → Task
+#
+# Usamos source_security_group_id en lugar de cidr_blocks — esto le dice
+# a AWS "solo permite tráfico que venga del SG del ALB", sin importar IPs.
 
 resource "aws_security_group" "ecs_tasks" {
   name        = "${var.project_name}-ecs-tasks-sg"
-  description = "Trafico para tasks ECS del backend"
+  description = "Trafico para tasks ECS ALB"
   vpc_id      = var.vpc_id
 
-  # Permitir tráfico entrante en el puerto de la app
+  # Solo acepta tráfico en el puerto de la app Y solo si viene del ALB
   ingress {
-    description = "HTTP desde cualquier lugar"
-    from_port   = var.container_port
-    to_port     = var.container_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    description     = "HTTP desde el ALB"
+    from_port       = var.container_port
+    to_port         = var.container_port
+    protocol        = "tcp"
+    security_groups = [aws_security_group.alb.id]  # ← referencia al SG del ALB
   }
 
-  # Permitir TODO el tráfico saliente (para descargar imágenes, llamar a RDS, etc.)
+  # Salida libre: necesario para conectarse a RDS, ECR, Secrets Manager, SNS, etc.
   egress {
     description = "Salida sin restricciones"
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"  # -1 = todos los protocolos
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -263,7 +265,7 @@ resource "aws_ecs_task_definition" "backend" {
       # Health check — ECS verifica que tu app responde
       # Asegúrate de tener el endpoint /health en tu API .NET
       # healthCheck = {
-      #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/healthz || exit 1"]
+      #   command     = ["CMD-SHELL", "curl -f http://localhost:${var.container_port}/health || exit 1"]
       #   interval    = 30
       #   timeout     = 5
       #   retries     = 3
@@ -277,8 +279,8 @@ resource "aws_ecs_task_definition" "backend" {
 # ==============================================================================
 # 6. ECS SERVICE
 # ==============================================================================
-# El Service mantiene corriendo SIEMPRE el número de tasks que configures.
-# Si un task muere, ECS automáticamente lanza uno nuevo.
+# ETAPA 2: El Service ahora está conectado al ALB a través del Target Group.
+# El ALB registra/desregistra tasks automáticamente al escalar o hacer deploy.
 
 resource "aws_ecs_service" "backend" {
   name            = "${var.project_name}-service"
@@ -291,20 +293,27 @@ resource "aws_ecs_service" "backend" {
   network_configuration {
     subnets          = var.subnet_ids
     security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = true  # Necesario en subnets públicas para acceder a internet
+    assign_public_ip = true  # Necesario para que el task pueda salir a internet (ECR, RDS, etc.)
   }
 
-  # Deployment sin downtime: antes de matar el task viejo, levanta el nuevo
+  # Integración con el ALB
+  # Cada task que levante ECS se registrará automáticamente en el Target Group
+  # y el ALB empezará a enviarle tráfico cuando pase el health check
+  load_balancer {
+    target_group_arn = aws_lb_target_group.backend.arn
+    container_name   = "${var.project_name}-container"
+    container_port   = var.container_port
+  }
+
+  # Deployment sin downtime: levanta el task nuevo antes de bajar el viejo.
+  # Con el ALB esto es seamless — el viejo sigue recibiendo tráfico hasta
+  # que el nuevo pase el health check y esté listo.
   deployment_minimum_healthy_percent = 50
   deployment_maximum_percent         = 200
 
-  # Esperar que las tasks estén healthy antes de marcar el deploy como exitoso
-  wait_for_steady_state = false  # En true bloquea terraform apply hasta que todo esté listo
+  # El Service debe esperar que el ALB exista antes de crearse
+  depends_on = [aws_lb_listener.http]
 
-  # IMPORTANTE: Ignorar cambios en task_definition desde Terraform
-  # porque GitHub Actions actualiza la task definition en cada deploy.
-  # Sin esto, terraform plan siempre mostraría "cambio" aunque no hayas
-  # modificado nada en la infra.
   lifecycle {
     ignore_changes = [task_definition, desired_count]
   }
