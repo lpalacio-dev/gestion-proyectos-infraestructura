@@ -115,17 +115,41 @@ output "jwt_secret_arn" {
 }
 
 # ------------------------------------------------------------------------------
+# Etapa 5: S3 + CloudFront (Frontend)
+# ------------------------------------------------------------------------------
+
+output "s3_bucket_name" {
+  description = "Nombre del bucket S3 — úsalo en GitHub Actions para subir el build de Angular"
+  value       = aws_s3_bucket.frontend.id
+}
+
+output "s3_bucket_arn" {
+  description = "ARN del bucket S3 frontend"
+  value       = aws_s3_bucket.frontend.arn
+}
+
+output "cloudfront_distribution_id" {
+  description = "ID de la distribución CloudFront — necesario para invalidar caché en cada deploy"
+  value       = aws_cloudfront_distribution.frontend.id
+}
+
+output "cloudfront_domain_name" {
+  description = "URL pública de tu frontend — ábrela en el navegador para ver tu Angular app"
+  value       = "https://${aws_cloudfront_distribution.frontend.domain_name}"
+}
+
+# ------------------------------------------------------------------------------
 # Etapa 4: CloudWatch Alarms
 # ------------------------------------------------------------------------------
 
 output "cloudwatch_alarms" {
   description = "Nombres de las alarms creadas — búscalas en CloudWatch → Alarms"
   value = {
-    ecs_cpu_high          = aws_cloudwatch_metric_alarm.ecs_cpu_high.alarm_name
-    ecs_memory_high       = aws_cloudwatch_metric_alarm.ecs_memory_high.alarm_name
-    alb_5xx_errors        = aws_cloudwatch_metric_alarm.alb_5xx_errors.alarm_name
-    alb_4xx_errors        = aws_cloudwatch_metric_alarm.alb_4xx_errors.alarm_name
-    alb_latency_high      = aws_cloudwatch_metric_alarm.alb_latency_high.alarm_name
+    ecs_cpu_high           = aws_cloudwatch_metric_alarm.ecs_cpu_high.alarm_name
+    ecs_memory_high        = aws_cloudwatch_metric_alarm.ecs_memory_high.alarm_name
+    alb_5xx_errors         = aws_cloudwatch_metric_alarm.alb_5xx_errors.alarm_name
+    alb_4xx_errors         = aws_cloudwatch_metric_alarm.alb_4xx_errors.alarm_name
+    alb_latency_high       = aws_cloudwatch_metric_alarm.alb_latency_high.alarm_name
     alb_no_healthy_targets = aws_cloudwatch_metric_alarm.alb_no_healthy_targets.alarm_name
   }
 }
