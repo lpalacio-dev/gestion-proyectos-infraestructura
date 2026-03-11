@@ -114,6 +114,22 @@ output "jwt_secret_arn" {
   value       = aws_secretsmanager_secret.jwt_key.arn
 }
 
+# ------------------------------------------------------------------------------
+# Etapa 4: CloudWatch Alarms
+# ------------------------------------------------------------------------------
+
+output "cloudwatch_alarms" {
+  description = "Nombres de las alarms creadas — búscalas en CloudWatch → Alarms"
+  value = {
+    ecs_cpu_high          = aws_cloudwatch_metric_alarm.ecs_cpu_high.alarm_name
+    ecs_memory_high       = aws_cloudwatch_metric_alarm.ecs_memory_high.alarm_name
+    alb_5xx_errors        = aws_cloudwatch_metric_alarm.alb_5xx_errors.alarm_name
+    alb_4xx_errors        = aws_cloudwatch_metric_alarm.alb_4xx_errors.alarm_name
+    alb_latency_high      = aws_cloudwatch_metric_alarm.alb_latency_high.alarm_name
+    alb_no_healthy_targets = aws_cloudwatch_metric_alarm.alb_no_healthy_targets.alarm_name
+  }
+}
+
 # ==============================================================================
 # Resumen para GitHub Actions
 # ==============================================================================
