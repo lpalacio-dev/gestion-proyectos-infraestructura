@@ -232,7 +232,21 @@ resource "aws_ecs_task_definition" "backend" {
         {
           name  = "ASPNETCORE_URLS"
           value = "http://+:${var.container_port}"
-        }
+        },
+        {
+          name  = "AWS__SnsTopicArn"
+          value = "arn:aws:sns:us-east-2:259030234305:task-events-topic"
+        },
+        {
+          name  = "PORT"
+          value = "8080"
+        },
+        {
+          name  = "S3_BUCKET_NAME"
+          value = "gestion-proyectos-profiles-dev"
+        },
+        
+        
       ]
 
       # Secrets — se inyectan de Secrets Manager en tiempo de ejecución

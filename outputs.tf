@@ -85,6 +85,35 @@ output "api_url" {
   value       = "http://${aws_lb.main.dns_name}"
 }
 
+# ------------------------------------------------------------------------------
+# Etapa 3: RDS + Secrets Manager
+# ------------------------------------------------------------------------------
+
+output "rds_endpoint" {
+  description = "Endpoint del RDS — host al que se conecta tu app (sin puerto)"
+  value       = aws_db_instance.postgres.address
+}
+
+output "rds_port" {
+  description = "Puerto PostgreSQL"
+  value       = aws_db_instance.postgres.port
+}
+
+output "rds_db_name" {
+  description = "Nombre de la base de datos creada en RDS"
+  value       = aws_db_instance.postgres.db_name
+}
+
+output "db_secret_arn" {
+  description = "ARN del connection string — cópialo en terraform.tfvars como db_secret_arn"
+  value       = aws_secretsmanager_secret.db_connection.arn
+}
+
+output "jwt_secret_arn" {
+  description = "ARN del JWT Key secret — cópialo en terraform.tfvars como jwt_secret_arn"
+  value       = aws_secretsmanager_secret.jwt_key.arn
+}
+
 # ==============================================================================
 # Resumen para GitHub Actions
 # ==============================================================================

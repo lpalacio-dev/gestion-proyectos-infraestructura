@@ -88,7 +88,35 @@ variable "task_memory" {
 variable "desired_count" {
   description = "Número de instancias (tasks) que quieres corriendo"
   type        = number
-  default     = 1
+  default     = 0
+}
+
+# ------------------------------------------------------------------------------
+# Variables de RDS
+# ------------------------------------------------------------------------------
+
+variable "db_instance_class" {
+  description = "Tipo de instancia RDS. db.t3.micro es Free Tier."
+  type        = string
+  default     = "db.t3.micro"
+}
+
+variable "db_name" {
+  description = "Nombre de la base de datos PostgreSQL que se creará automáticamente"
+  type        = string
+  default     = "gestion_proyectos"
+}
+
+variable "db_username" {
+  description = "Usuario administrador de la base de datos"
+  type        = string
+  default     = "dbadmin"
+}
+
+variable "db_password" {
+  description = "Contraseña del usuario administrador. Mínimo 8 caracteres, sin @, /, o espacios."
+  type        = string
+  sensitive   = true  # Terraform no la mostrará en los logs ni en el plan
 }
 
 # ------------------------------------------------------------------------------
@@ -96,13 +124,19 @@ variable "desired_count" {
 # ------------------------------------------------------------------------------
 
 variable "db_secret_arn" {
-  description = "ARN del secreto en Secrets Manager que contiene el connection string de PostgreSQL. Si aún no lo tienes, lo crearemos en la Etapa 3 (RDS)."
+  description = "ARN del connection string — se rellena automáticamente desde outputs después de aplicar secrets.tf"
   type        = string
-  default     = ""  # Vacío por ahora, lo rellenaremos cuando agreguemos RDS
+  default     = ""
 }
 
 variable "jwt_secret_arn" {
-  description = "ARN del secreto en Secrets Manager que contiene la JWT Key."
+  description = "ARN del JWT Key secret — se rellena automáticamente desde outputs después de aplicar secrets.tf"
   type        = string
-  default     = ""  # Vacío por ahora
+  default     = ""
+}
+
+variable "jwt_secret_value" {
+  description = "Valor de la clave JWT. Mínimo 32 caracteres, usa una cadena aleatoria segura."
+  type        = string
+  sensitive   = true  # No aparece en logs ni en terraform plan
 }
