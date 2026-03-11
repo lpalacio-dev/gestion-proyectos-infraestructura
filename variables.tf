@@ -88,7 +88,35 @@ variable "task_memory" {
 variable "desired_count" {
   description = "Número de instancias (tasks) que quieres corriendo"
   type        = number
-  default     = 0
+  default     = 1
+}
+
+# ------------------------------------------------------------------------------
+# Variables de Auto Scaling
+# ------------------------------------------------------------------------------
+
+variable "autoscaling_min_capacity" {
+  description = "Número mínimo de tasks ECS siempre corriendo. Con 1 siempre hay disponibilidad."
+  type        = number
+  default     = 1
+}
+
+variable "autoscaling_max_capacity" {
+  description = "Número máximo de tasks ECS. Controla el costo máximo posible."
+  type        = number
+  default     = 4
+}
+
+variable "autoscaling_cpu_target" {
+  description = "% de CPU objetivo. Auto Scaling mantiene este valor agregando o quitando tasks."
+  type        = number
+  default     = 70
+}
+
+variable "autoscaling_memory_target" {
+  description = "% de Memoria objetivo. Complementa el escalado por CPU."
+  type        = number
+  default     = 75
 }
 
 # ------------------------------------------------------------------------------

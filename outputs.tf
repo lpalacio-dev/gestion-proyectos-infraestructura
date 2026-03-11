@@ -115,6 +115,28 @@ output "jwt_secret_arn" {
 }
 
 # ------------------------------------------------------------------------------
+# Etapa 6: Auto Scaling
+# ------------------------------------------------------------------------------
+
+output "autoscaling_min_capacity" {
+  description = "Número mínimo de tasks configurado"
+  value       = aws_appautoscaling_target.ecs.min_capacity
+}
+
+output "autoscaling_max_capacity" {
+  description = "Número máximo de tasks configurado"
+  value       = aws_appautoscaling_target.ecs.max_capacity
+}
+
+output "autoscaling_policies" {
+  description = "Políticas de Auto Scaling creadas"
+  value = {
+    cpu    = aws_appautoscaling_policy.ecs_cpu.name
+    memory = aws_appautoscaling_policy.ecs_memory.name
+  }
+}
+
+# ------------------------------------------------------------------------------
 # Etapa 5: S3 + CloudFront (Frontend)
 # ------------------------------------------------------------------------------
 
