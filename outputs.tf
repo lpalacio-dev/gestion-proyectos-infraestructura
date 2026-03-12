@@ -115,6 +115,49 @@ output "jwt_secret_arn" {
 }
 
 # ------------------------------------------------------------------------------
+# Etapa 7: Lambdas + SNS + SQS
+# ------------------------------------------------------------------------------
+
+output "s3_media_bucket_name" {
+  description = "Bucket S3 para imágenes de perfil — configúralo en la Task Definition como S3_BUCKET_NAME"
+  value       = aws_s3_bucket.media.bucket
+}
+
+output "sns_topic_arn" {
+  description = "ARN del SNS Topic — configúralo en la Task Definition como AWS__SnsTopicArn"
+  value       = aws_sns_topic.task_events.arn
+}
+
+output "sqs_task_email_queue_url" {
+  description = "URL de la SQS queue de emails"
+  value       = aws_sqs_queue.task_email.url
+}
+
+output "sqs_task_email_dlq_url" {
+  description = "URL de la DLQ — monitorea aquí los mensajes fallidos"
+  value       = aws_sqs_queue.task_email_dlq.url
+}
+
+output "lambda_image_processor_name" {
+  description = "Nombre de ImageProcessorLambda — úsalo para subir el código con update-function-code"
+  value       = aws_lambda_function.image_processor.function_name
+}
+
+output "lambda_task_notifier_name" {
+  description = "Nombre de TaskNotifierLambda — úsalo para subir el código con update-function-code"
+  value       = aws_lambda_function.task_notifier.function_name
+}
+
+output "ecs_task_definition_env_vars" {
+  description = "Variables de entorno a agregar en la Task Definition de ECS"
+  value = {
+    S3_BUCKET_NAME  = aws_s3_bucket.media.bucket
+    AWS__SnsTopicArn = aws_sns_topic.task_events.arn
+    AWS__Region      = var.aws_region
+  }
+}
+
+# ------------------------------------------------------------------------------
 # Etapa 6: Auto Scaling
 # ------------------------------------------------------------------------------
 

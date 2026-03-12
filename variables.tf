@@ -92,6 +92,16 @@ variable "desired_count" {
 }
 
 # ------------------------------------------------------------------------------
+# Variables de Lambdas / SNS / SES
+# ------------------------------------------------------------------------------
+
+variable "ses_sender_email" {
+  description = "Email verificado en SES desde el que se envían las notificaciones. En Sandbox debe estar verificado en SES → Verified identities."
+  type        = string
+  default     = "noreply@tudominio.com"  # ← cámbialo por tu email verificado en SES
+}
+
+# ------------------------------------------------------------------------------
 # Variables de Auto Scaling
 # ------------------------------------------------------------------------------
 

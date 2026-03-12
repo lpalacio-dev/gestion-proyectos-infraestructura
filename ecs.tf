@@ -235,7 +235,7 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name  = "AWS__SnsTopicArn"
-          value = "arn:aws:sns:us-east-2:259030234305:task-events-topic"
+          value = "arn:aws:sns:us-east-2:259030234305:gestion-proyectos-terraform-task-events-topic"
         },
         {
           name  = "PORT"
@@ -243,7 +243,7 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name  = "S3_BUCKET_NAME"
-          value = "gestion-proyectos-profiles-dev"
+          value = "gestion-proyectos-terraform-media-259030234305"
         },
         
         
